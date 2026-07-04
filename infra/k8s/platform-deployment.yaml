@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: atlas-platform }
+spec:
+  replicas: 3
+  selector: { matchLabels: { app: atlas-platform } }
+  template:
+    metadata: { labels: { app: atlas-platform } }
+    spec:
+      containers:
+        - name: platform
+          image: ghcr.io/atlas/platform:latest
+          ports: [{ containerPort: 8080 }]
+          # Health probes drive rolling deploys + autoscaling safely.
+          readinessProbe: { httpGet: { path: /actuator/health/readiness, port: 8080 }, initialDelaySeconds: 15 }
+          livenessProbe:  { httpGet: { path: /actuator/health/liveness,  port: 8080 }, initialDelaySeconds: 30 }
+          resources:
+            requests: { cpu: "500m", memory: 1Gi }
+            limits:   { cpu: "2",    memory: 2Gi }
+          envFrom: [{ secretRef: { name: atlas-platform-secrets } }]
+      terminationGracePeriodSeconds: 45   # matches server.shutdown: graceful
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: atlas-platform }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: atlas-platform }
+  minReplicas: 3
+  maxReplicas: 12
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 65 } }

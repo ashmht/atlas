@@ -1,0 +1,23 @@
+syntax = "proto3";
+package atlas.ledger.v1;
+
+option java_multiple_files = true;
+option java_package = "com.atlas.platform.ledger.events";
+
+// Versioned event contract for the ledger, published to topic
+// `atlas.ledger.journal-entry.v1` via the transactional outbox. The contract is
+// the stable surface consumers (analytics and any future read-model) bind to;
+// it mirrors the events emitted by LedgerEventOutbox.
+
+message JournalEntryPosted {
+  string entry_id = 1;
+  string organization_id = 2;
+  string description = 3;
+  int32 posting_count = 4;
+}
+
+message JournalEntryReversed {
+  string entry_id = 1;
+  string organization_id = 2;
+  string reverses_entry_id = 3;
+}

@@ -1,0 +1,39 @@
+{
+  "realm": "atlas",
+  "enabled": true,
+  "clientScopes": [
+    {
+      "name": "ledger:write",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true" }
+    },
+    {
+      "name": "ledger:read",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true" }
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "atlas-platform",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "secret": "dev-only-secret",
+      "defaultClientScopes": ["ledger:write", "ledger:read"],
+      "protocolMappers": [
+        {
+          "name": "org_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "config": {
+            "claim.name": "org_id",
+            "claim.value": "00000000-0000-0000-0000-000000000001",
+            "jsonType.label": "String",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ]
+}

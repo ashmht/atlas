@@ -1,0 +1,58 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+
+jobs:
+  platform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "21", cache: gradle }
+      - name: Build, verify module boundaries, test
+        working-directory: platform
+        run: ./gradlew --no-daemon check
+      # `check` runs unit tests + Spring Modulith ModularityTests +
+      # Testcontainers integration tests. Architecture violations fail the build.
+
+  analytics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install + test
+        working-directory: analytics
+        run: |
+          pip install -r requirements.txt
+          pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      # Uses `npm install`; commit a package-lock.json to switch to `npm ci`
+      # with npm caching (`npm ci` requires a lockfile).
+      - working-directory: frontend
+        run: |
+          npm install --no-audit --no-fund
+          npm run lint
+          npm run build
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+      - name: Filesystem + dependency scan (Trivy)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          exit-code: "0"

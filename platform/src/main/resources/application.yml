@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: atlas-platform
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/atlas}
+    username: ${DB_USER:atlas}
+    password: ${DB_PASSWORD:atlas}
+  jpa:
+    hibernate:
+      ddl-auto: validate       # schema is owned by Flyway, never Hibernate
+    open-in-view: false
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  data:
+    redis:
+      url: ${REDIS_URL:redis://localhost:6379}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OIDC_ISSUER:http://localhost:8081/realms/atlas}
+
+atlas:
+  temporal:
+    target: ${TEMPORAL_TARGET:localhost:7233}
+    namespace: atlas
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKERS:localhost:9092}
+
+management:
+  endpoints.web.exposure.include: health,info,prometheus,metrics
+  endpoint.health.probes.enabled: true   # k8s liveness/readiness
+  health.livenessstate.enabled: true
+  health.readinessstate.enabled: true
+  tracing.sampling.probability: 1.0
+  otlp.tracing.endpoint: ${OTEL_ENDPOINT:http://localhost:4318/v1/traces}
+
+server:
+  shutdown: graceful   # drain in-flight requests before exit
