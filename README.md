@@ -1,5 +1,7 @@
 # Atlas — Institutional Stablecoin Treasury & Settlement Platform
 
+[![ci](https://github.com/ashmht/atlas/actions/workflows/ci.yml/badge.svg)](https://github.com/ashmht/atlas/actions/workflows/ci.yml)
+
 Atlas is the core money-movement infrastructure for an institutional stablecoin
 business: an immutable double-entry ledger, stablecoin deposits and withdrawals,
 treasury allocation, settlement, reconciliation, compliance gating, and yield
